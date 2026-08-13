@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="grid cols-2">
+
+  <div class="card">
+    <h2>Add Holiday</h2>
+    <form method="post">
+      <label>Date</label>
+      <input type="date" name="holiday_date" required>
+
+      <label>Holiday Name</label>
+      <input type="text" name="name" required>
+
+      <button class="btn btn-primary" type="submit">Save Holiday</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Holiday List</h2>
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead style="position: sticky; top: 0; background: #fafafa;">
+          <tr>
+            <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Date</th>
+            <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Name</th>
+            <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in holidays %}
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ h['holiday_date'] }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ h['name'] }}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+              <a href="{{ url_for('edit_holiday', holiday_id=h['id']) }}" class="btn btn-secondary">Edit</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3" style="padding: 12px; text-align: center; color: #999;">No holidays found. Add one to get started!</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

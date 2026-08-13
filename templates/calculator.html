@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <h2>Attendance Calculator</h2>
+  <form method="get" class="inline-form">
+    <div>
+      <label>Employee</label>
+      <select name="employee_id">
+        <option value="">Select</option>
+        {% for e in employees %}
+        <option value="{{ e.id }}" {% if employee_id|int == e.id %}selected{% endif %}>
+          {{ e.employee_code }} - {{ e.full_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label>From</label>
+      <input type="date" name="from_date" value="{{ from_date }}" required>
+    </div>
+
+    <div>
+      <label>To</label>
+      <input type="date" name="to_date" value="{{ to_date }}" required>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:end;">
+      <button class="btn btn-primary" type="submit">Calculate</button>
+
+      <a class="btn btn-secondary"
+         href="{{ url_for('export_all_calculator_excel', from_date=from_date, to_date=to_date) }}">
+         Export All to Excel
+      </a>
+    </div>
+  </form>
+</div>
+
+{% if result %}
+<div class="grid cols-3 mt">
+  <div class="card stat"><h3>{{ result.total_days }}</h3><p>Total Days</p></div>
+  <div class="card stat"><h3>{{ result.working_days }}</h3><p>Working Days</p></div>
+  <div class="card stat"><h3>{{ result.present }}</h3><p>Present</p></div>
+  <div class="card stat"><h3>{{ result.holidays }}</h3><p>Holidays</p></div>
+  <div class="card stat"><h3>{{ result.leave_records }}</h3><p>Leave Records</p></div>
+  <div class="card stat"><h3>{{ result.percentage }}%</h3><p>Attendance %</p></div>
+</div>
+{% endif %}
+{% endblock %}

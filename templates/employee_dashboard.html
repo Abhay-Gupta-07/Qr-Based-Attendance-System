@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <h2>Welcome, {{ employee.full_name }}</h2>
+  <p>Employee Code: {{ employee.employee_code }}</p>
+  <p>Department: {{ employee.department }}</p>
+  <p>Designation: {{ employee.designation }}</p>
+</div>
+
+<div class="card mt">
+  <h2>My Attendance Records</h2>
+  <table>
+    <tr>
+      <th>Date</th>
+      <th>Check In</th>
+      <th>Check Out</th>
+      <th>Status</th>
+    </tr>
+    {% for record in attendance_records %}
+    <tr>
+      <td>{{ record.attendance_date }}</td>
+      <td>{{ record.check_in_time or '-' }}</td>
+      <td>{{ record.check_out_time or '-' }}</td>
+      <td>{{ record.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card mt">
+  <h2>My Reports</h2>
+  <form method="get" class="inline-form">
+    <div>
+      <label>From</label>
+      <input type="date" name="from_date" value="{{ from_date }}">
+    </div>
+    <div>
+      <label>To</label>
+      <input type="date" name="to_date" value="{{ to_date }}">
+    </div>
+    <button class="btn btn-primary" type="submit">Filter</button>
+  </form>
+
+  <table>
+    <tr>
+      <th>Date</th>
+      <th>Check In</th>
+      <th>Check Out</th>
+      <th>Status</th>
+    </tr>
+    {% for record in filtered_records %}
+    <tr>
+      <td>{{ record.attendance_date }}</td>
+      <td>{{ record.check_in_time or '-' }}</td>
+      <td>{{ record.check_out_time or '-' }}</td>
+      <td>{{ record.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="mt">
+  <a href="{{ url_for('employee_logout') }}" class="btn btn-secondary">Logout</a>
+</div>
+{% endblock %}

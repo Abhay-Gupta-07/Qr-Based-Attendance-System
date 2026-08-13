@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="grid cols-2">
+  <div class="card">
+    <h2>Add Leave</h2>
+    <form method="post">
+      <label>Employee</label>
+      <select name="employee_id" required>
+        {% for e in employees %}
+        <option value="{{ e.id }}">{{ e.employee_code }} - {{ e.full_name }}</option>
+        {% endfor %}
+      </select>
+      <label>From Date</label>
+      <input type="date" name="from_date" required>
+      <label>To Date</label>
+      <input type="date" name="to_date" required>
+      <label>Reason</label>
+      <input type="text" name="reason">
+      <label>Status</label>
+      <select name="status">
+        <option>APPROVED</option>
+        <option>PENDING</option>
+        <option>REJECTED</option>
+      </select>
+      <p></p>
+      <button class="btn btn-primary" type="submit">Save Leave</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Leave Records</h2>
+    <table>
+      <tr><th>Employee</th><th>From</th><th>To</th><th>Status</th><th>Reason</th></tr>
+      {% for row in leaves %}
+      <tr>
+        <td>{{ row.employee_code }} - {{ row.full_name }}</td>
+        <td>{{ row.from_date }}</td>
+        <td>{{ row.to_date }}</td>
+        <td>{{ row.status }}</td>
+        <td>{{ row.reason }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}

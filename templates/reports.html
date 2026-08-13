@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <h2>Attendance Reports</h2>
+  <form method="get" class="inline-form">
+    <div>
+      <label>Employee</label>
+      <select name="employee_id">
+        <option value="">All Employees</option>
+        {% for e in employees %}
+        <option value="{{ e.id }}" {% if employee_id|int == e.id %}selected{% endif %}>
+          {{ e.employee_code }} - {{ e.full_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label>From</label>
+      <input type="date" name="from_date" value="{{ from_date }}">
+    </div>
+
+    <div>
+      <label>To</label>
+      <input type="date" name="to_date" value="{{ to_date }}">
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:end;">
+      <button class="btn btn-primary" type="submit">Filter</button>
+
+      <a class="btn btn-secondary"
+         href="{{ url_for('export_attendance_report', employee_id=employee_id, from_date=from_date, to_date=to_date) }}">
+         Export Excel
+      </a>
+    </div>
+  </form>
+
+  <table>
+    <tr>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Department</th>
+      <th>Date</th>
+      <th>Check In</th>
+      <th>Check Out</th>
+      <th>Status</th>
+    </tr>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.employee_code }}</td>
+      <td>{{ row.full_name }}</td>
+      <td>{{ row.department }}</td>
+      <td>{{ row.attendance_date }}</td>
+      <td>{{ row.check_in_time or '-' }}</td>
+      <td>{{ row.check_out_time or '-' }}</td>
+      <td>{{ row.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

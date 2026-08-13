@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card">
+  <h2>Edit Holiday</h2>
+
+  <form method="post">
+    <label>Date</label>
+    <input type="date" name="holiday_date" value="{{ holiday['holiday_date'] }}" required>
+
+    <label>Holiday Name</label>
+    <input type="text" name="name" value="{{ holiday['name'] }}" required>
+
+    <div style="margin-top:15px;">
+      <button class="btn btn-primary" type="submit">Update Holiday</button>
+
+      <!-- DELETE BUTTON -->
+      <button class="btn btn-danger" type="submit" name="delete" value="1">
+              
+        Delete
+      </button>
+
+      <a href="{{ url_for('holiday_management') }}" class="btn btn-secondary">Back</a>
+    </div>
+  </form>
+
+</div>
+
+{% endblock %}

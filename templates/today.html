@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>Today's Attendance - {{ today }}</h2>
+    
+    <div style="display:flex; gap:10px;">
+      <!-- AUTO REFRESH -->
+      <button class="btn btn-secondary small" onclick="location.reload()">
+        Refresh
+      </button>
+      
+      <!-- EXPORT BUTTON -->
+      <a href="{{ url_for('export_today_excel') }}" class="btn btn-secondary">
+        Export Excel
+      </a>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Department</th>
+      <th>Check In</th>
+      <th>Check Out</th>
+      <th>Status</th>
+    </tr>
+
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.employee_code }}</td>
+      <td>{{ row.full_name }}</td>
+      <td>{{ row.department }}</td>
+      <td>{{ row.check_in_time or '-' }}</td>
+      <td>{{ row.check_out_time or '-' }}</td>
+      <td>{{ row.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+</div>
+{% endblock %}

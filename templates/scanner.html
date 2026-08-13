@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="grid cols-2">
+  <div class="card">
+    <h2>QR Scanner</h2>
+    <p class="muted">
+      Attendance is allowed only within {{ office_radius }} meters of the configured office location.
+    </p>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="startScanner()">Start Scanner</button>
+      <button class="btn btn-danger" onclick="stopScanner()">Stop</button>
+      <button class="btn btn-secondary" onclick="showAbsentDialog()">Mark Absent</button>
+    </div>
+
+    <div id="reader" style="width:100%; max-width:420px; margin-top:20px;"></div>
+    <div id="scan-status" class="mt"></div>
+  </div>
+
+  <!-- Absent Dialog -->
+  <div id="absent-dialog" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:10px; min-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+      <h3>Mark Employee Absent</h3>
+      <p>Enter employee ID and reason for absence:</p>
+      <div style="margin-bottom:15px;">
+        <label>Employee ID:</label>
+        <input type="text" id="absent-employee-id" placeholder="Enter employee ID" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+      </div>
+      <div style="margin-bottom:15px;">
+        <label>Reason (optional):</label>
+        <textarea id="absent-reason" placeholder="Enter reason for absence" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:4px; min-height:60px;"></textarea>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="hideAbsentDialog()">Cancel</button>
+        <button class="btn btn-danger" onclick="markAbsent()">Mark Absent</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Troubleshooting</h2>
+    <div id="troubleshooting-info">
+      <p><strong>If QR scanning is not working:</strong></p>
+      <ul>
+        <li><strong>Admin Login:</strong> Make sure you're logged in as admin</li>
+        <li><strong>Camera Permission:</strong> Allow camera access when prompted</li>
+        <li><strong>Browser:</strong> Use Chrome, Firefox, or Edge (not Safari)</li>
+        <li><strong>HTTPS:</strong> Make sure you're accessing via https://</li>
+        <li><strong>Lighting:</strong> Ensure good lighting on QR code</li>
+        <li><strong>Distance:</strong> Hold phone 10-20cm from QR code</li>
+        <li><strong>Refresh:</strong> Reload page if scanner doesn't start</li>
+        <li><strong>Camera:</strong> Close other apps using the camera</li>
+        <li><strong>Valid QR:</strong> Use today's employee QR code only</li>
+      </ul>
+      
+      <div style="margin-top: 15px;">
+        <button class="btn btn-secondary small" onclick="testCamera()">
+          Test Camera
+        </button>
+        <button class="btn btn-secondary small" onclick="testQRCode()">
+          Test QR Library
+        </button>
+        <button class="btn btn-secondary small" onclick="testServerConnection()">
+          Test Server
+        </button>
+      </div>
+      
+      <div id="test-results" class="mt" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let scanner = null;
+let scannerRunning = false;
+let lastScannedText = '';
+let lastScanTime = 0;
+
+function setStatus(text, type = '') {
+  const el = document.getElementById('scan-status');
+  el.className = 'mt ' + type;
+  el.innerText = text;
+}
+
+async function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported in this browser'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+      },
+      (err) => {
+        reject(new Error('Unable to get location: ' + err.message));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  });
+}
+
+async function handleDecoded(token) {
+  const now = Date.now();
+
+  if (token === lastScannedText && now - lastScanTime < 3000) {
+    return;
+  }
+
+  lastScannedText = token;
+  lastScanTime = now;
+
+  try {
+    setStatus('Getting GPS location...', 'warning');
+    const loc = await getCurrentLocation();
+
+    if (!loc || !loc.lat || !loc.lng) {
+      setStatus('Location not available. Please try again.', 'danger');
+      return;
+    }
+
+    setStatus('Processing attendance...', 'warning');
+
+    const res = await fetch("{{ url_for('api_scan') }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: token,
+        lat: loc.lat,
+        lng: loc.lng,
+        accuracy: loc.accuracy,
+        face_verified: false
+      })
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Server error response:', errorText);
+      
+      // Try to parse as JSON to get clean message
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.message) {
+          setStatus(errorJson.message, 'danger');
+        } else {
+          setStatus(`Server error: ${res.status}`, 'danger');
+        }
+      } catch (e) {
+        // If not JSON, check for HTML response
+        if (errorText.includes('<!doctype') || errorText.includes('<html')) {
+          setStatus('Server error: Flask app may not be running. Please check server status.', 'danger');
+        } else {
+          setStatus(`Server error: ${res.status}`, 'danger');
+        }
+      }
+      return;
+    }
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      const responseText = await res.text();
+      console.error('Response text:', responseText);
+      setStatus('Invalid server response. Server may be down or returning HTML instead of JSON.', 'danger');
+      return;
+    }
+
+    setStatus(data.message || 'Scan complete', data.ok ? 'success' : 'danger');
+  } catch (e) {
+    console.error(e);
+    setStatus('Scan request failed: ' + e.message, 'danger');
+  }
+}
+
+async function stopScanner() {
+  if (scanner && scannerRunning) {
+    try {
+      await scanner.stop();
+      await scanner.clear();
+    } catch (e) {
+      console.error('Stop scanner error:', e);
+    }
+  }
+
+  scanner = null;
+  scannerRunning = false;
+
+  const reader = document.getElementById('reader');
+  if (reader) {
+    reader.innerHTML = '';
+  }
+
+  setStatus('Scanner stopped');
+}
+
+async function startScanner() {
+  lastScannedText = '';
+  lastScanTime = 0;
+
+  console.log('Starting scanner...');
+  setStatus('Initializing scanner...', 'warning');
+
+  if (!window.Html5Qrcode) {
+    console.error('Html5Qrcode library not found');
+    setStatus('html5-qrcode library not loaded. Please refresh the page.', 'danger');
+    return;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    console.error('Camera API not supported');
+    setStatus('Camera API not supported in this browser. Try using Chrome or Firefox.', 'danger');
+    return;
+  }
+
+  if (scannerRunning) {
+    console.log('Stopping existing scanner...');
+    await stopScanner();
+  }
+
+  setStatus('Checking camera access...', 'warning');
+
+  try {
+    console.log('Getting available cameras...');
+    const cameras = await Html5Qrcode.getCameras();
+    console.log('Available cameras:', cameras);
+
+    if (!cameras || cameras.length === 0) {
+      setStatus('No camera found. Please check if camera is connected and not used by another app.', 'danger');
+      return;
+    }
+
+    console.log('Creating Html5Qrcode instance...');
+    scanner = new Html5Qrcode('reader');
+
+    console.log('Starting scanner with camera...');
+    await scanner.start(
+      { facingMode: 'environment' },
+      {
+        fps: 10,
+        qrbox: { width: 260, height: 260 },
+        aspectRatio: 1.0
+      },
+      (decodedText) => {
+        console.log('QR Code detected:', decodedText);
+        handleDecoded(decodedText);
+      },
+      (errorMessage) => {
+        // Silently handle scan errors to avoid spam
+        console.debug('Scan error:', errorMessage);
+      }
+    );
+
+    scannerRunning = true;
+    console.log('Scanner started successfully');
+    setStatus('Scanner started. Point camera at QR code to scan.', 'success');
+  } catch (e) {
+    console.error('Scanner start error:', e);
+    setStatus('Unable to start scanner: ' + e.message, 'danger');
+  }
+}
+
+function testCamera() {
+  const resultsDiv = document.getElementById('test-results');
+  resultsDiv.style.display = 'block';
+  resultsDiv.innerHTML = '<strong>Testing Camera...</strong>';
+  
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    resultsDiv.innerHTML = '<strong style="color: red;">Camera API not supported in this browser</strong><br>Please use Chrome or Firefox.';
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      resultsDiv.innerHTML = '<strong style="color: green;">Camera working!</strong><br>Camera access granted successfully.';
+      stream.getTracks().forEach(track => track.stop());
+    })
+    .catch(err => {
+      let errorMsg = 'Unable to access camera';
+      
+      if (err.name === 'NotAllowedError') {
+        errorMsg = 'Camera permission denied. Please allow camera access in browser settings.';
+      } else if (err.name === 'NotFoundError') {
+        errorMsg = 'No camera found. Please check camera connection.';
+      } else if (err.name === 'NotReadableError') {
+        errorMsg = 'Camera is already in use by another application.';
+      }
+      
+      resultsDiv.innerHTML = `<strong style="color: red;">${errorMsg}</strong><br>Error: ${err.message}`;
+    });
+}
+
+function testQRCode() {
+  const resultsDiv = document.getElementById('test-results');
+  resultsDiv.style.display = 'block';
+  
+  if (!window.Html5Qrcode) {
+    resultsDiv.innerHTML = '<strong style="color: red;">HTML5 QR Code library not loaded</strong><br>Please refresh the page or check internet connection.';
+    return;
+  }
+  
+  resultsDiv.innerHTML = '<strong style="color: green;">QR Code library loaded!</strong><br>Html5Qrcode is available and ready.';
+}
+
+function testServerConnection() {
+  const resultsDiv = document.getElementById('test-results');
+  resultsDiv.style.display = 'block';
+  resultsDiv.innerHTML = '<strong>Testing Server Connection...</strong>';
+  
+  // First test if we can reach the server at all
+  fetch(window.location.href)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      resultsDiv.innerHTML = '<strong style="color: green;">✅ Server is Running!</strong><br>Flask app is accessible.<br><br><strong>Note:</strong> The /api/scan endpoint requires a valid QR token and admin session. The actual QR scanning will work when you scan a real employee QR code.';
+    })
+    .catch(err => {
+      resultsDiv.innerHTML = `<strong style="color: red;">❌ Server Connection Failed</strong><br>Error: ${err.message}<br><br><strong>Possible solutions:</strong><br>1. Make sure Flask app is running<br>2. Check if you're on the correct URL<br>3. Verify database connection<br>4. Check server logs for errors`;
+    });
+}
+
+function testQRCode() {
+  const resultsDiv = document.getElementById('test-results');
+  resultsDiv.style.display = 'block';
+  
+  if (!window.Html5Qrcode) {
+    resultsDiv.innerHTML = '<strong style="color: red;">❌ HTML5 QR Code library not loaded</strong><br>Please refresh the page or check internet connection.';
+    return;
+  }
+  
+  resultsDiv.innerHTML = '<strong style="color: green;">✅ QR Code library loaded!</strong><br>Html5Qrcode is available and ready.';
+}
+
+function showAbsentDialog() {
+  document.getElementById('absent-dialog').style.display = 'block';
+}
+
+function hideAbsentDialog() {
+  document.getElementById('absent-dialog').style.display = 'none';
+  document.getElementById('absent-employee-id').value = '';
+  document.getElementById('absent-reason').value = '';
+}
+
+async function markAbsent() {
+  const employeeId = document.getElementById('absent-employee-id').value.trim();
+  const reason = document.getElementById('absent-reason').value.trim();
+  
+  if (!employeeId) {
+    setStatus('Employee ID is required', 'danger');
+    return;
+  }
+  
+  try {
+    setStatus('Marking employee as absent...', 'warning');
+    
+    const res = await fetch("{{ url_for('mark_absent') }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        employee_id: employeeId,
+        reason: reason
+      })
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Server error response:', errorText);
+      setStatus(`Server error: ${res.status}`, 'danger');
+      return;
+    }
+    
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      setStatus('Invalid server response', 'danger');
+      return;
+    }
+    
+    setStatus(data.message || 'Employee marked as absent', data.ok ? 'success' : 'danger');
+    if (data.ok) {
+      hideAbsentDialog();
+    }
+  } catch (e) {
+    console.error(e);
+    setStatus('Failed to mark absent: ' + e.message, 'danger');
+  }
+}
+
+window.addEventListener('load', () => {
+  // Scanner ready - no GPS tracking needed
+});
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-card card">
+  <h2>Employee Login</h2>
+  <form method="post">
+    <label>Employee Code</label>
+    <input type="text" name="employee_code" placeholder="Employee Code" required>
+    <label>Password</label>
+    <input type="password" name="password" placeholder="Password" required>
+    <br><br>
+    <button class="btn btn-primary" type="submit">Login</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary" style="margin-left:10px;">Go to Home</a>
+    <br><br>
+  </form>
+  <p class="muted">Please Enter Your Employee Code And Password !</p>
+</div>
+{% endblock %}

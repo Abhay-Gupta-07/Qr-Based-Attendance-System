@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body style="text-align:center; font-family:Arial;">
+
+    <h2>QR Code for Attendance</h2>
+
+    <p><b>Name:</b> {{ employee.full_name }}</p>
+    <p><b>Employee Code:</b> {{ employee.employee_code }}</p>
+
+    <div id="qrcode" style="margin-top:20px;"></div>
+
+    <script>
+        new QRCode(document.getElementById("qrcode"), {
+            text: "{{ token }}",
+            width: 200,
+            height: 200
+        });
+    </script>
+
+</body>
+</html>

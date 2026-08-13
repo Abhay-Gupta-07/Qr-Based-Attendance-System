@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="grid cols-5">
+  <div class="card stat"><h3>{{ stats.employees }}</h3><p>Total Employees</p></div>
+  <div class="card stat"><h3>{{ stats.today_present }}</h3><p>Today Present</p></div>
+  <div class="card stat"><h3>{{ stats.today_leaves }}</h3><p>Leaves Today</p></div>
+  <div class="card stat"><h3>{{ stats.holidays }}</h3><p>Total Holidays</p></div>
+  <div class="card stat"><h3>{{ stats.working_days }}</h3><p>Total Working Days</p></div>
+</div>
+
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Add Employee</h2>
+    <form method="post" action="{{ url_for('add_employee') }}" autocomplete="off">
+      <label>Employee Code</label>
+      <input type="text" name="employee_code" autocomplete="off" required>
+      <label>Full Name</label>
+      <input type="text" name="full_name" autocomplete="off" required>
+      <label>Department</label>
+      <input type="text" name="department" autocomplete="off" required>
+      <label>Designation</label>
+      <input type="text" name="designation" autocomplete="off" required>
+      <label>Gmail</label>
+      <input type="email" name="gmail" autocomplete="off">
+      <label>Password</label>
+      <input type="password" name="password" autocomplete="new-password" required>
+      <p></p>
+      <button class="btn btn-primary" type="submit">Add Employee</button>
+    </form>
+  </div>
+
+  <div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>Recent Audit Logs</h2>
+
+    <div style="display:flex; gap:10px;">
+      <!-- 🔄 Refresh -->
+      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary small">
+        Refresh
+      </a>
+
+      <!-- 🗑 Clear Logs -->
+      <form method="post" action="{{ url_for('clear_audit_logs') }}">
+            
+        <button class="btn btn-danger small" type="submit">
+          Clear Logs
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Time</th><th>Action</th><th>Admin</th><th>Details</th></tr>
+    {% for row in audit_logs %}
+    <tr>
+      <td>{{ row.created_at }}</td>
+      <td>{{ row.action }}</td>
+      <td>{{ row.admin_name }}</td>
+      <td>{{ row.details }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+  
+</div>
+
+<div class="card mt">
+  <h2>Employees</h2>
+  <table>
+    <tr><th>Code</th><th>Name</th><th>Department</th><th>Designation</th><th>QR</th><th>Delete</th></tr>
+    {% for e in employees %}
+    <tr>
+      <td>{{ e.employee_code }}</td>
+      <td>{{ e.full_name }}</td>
+      <td>{{ e.department }}</td>
+      <td>{{ e.designation }}</td>
+      <td><a class="btn btn-secondary small" href="{{ url_for('employee_qr', employee_id=e.id) }}">Show QR</a></td>
+      <td>
+        <a class="btn btn-danger small" href="{{ url_for('delete_employee_confirm', employee_id=e.id) }}">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="mt">
+    <form method="post" action="{{ url_for('send_qr_codes') }}">
+      <button class="btn btn-primary" type="submit">Send QR Codes</button>
+    </form>
+  </div>
+</div>
+
+<div class="card mt">
+  <h2>Today's Attendance</h2>
+  <table>
+    <tr><th>Code</th><th>Name</th><th>Department</th><th>Check In</th><th>Check Out</th><th>Status</th></tr>
+    {% for row in today_list %}
+    <tr>
+      <td>{{ row.employee_code }}</td>
+      <td>{{ row.full_name }}</td>
+      <td>{{ row.department }}</td>
+      <td>{{ row.check_in_time or '-' }}</td>
+      <td>{{ row.check_out_time or '-' }}</td>
+      <td>{{ row.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

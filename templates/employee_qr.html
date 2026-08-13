@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card qr-card">
+  <h2>{{ employee.full_name }}</h2>
+  <p><strong>Employee Code:</strong> {{ employee.employee_code }}</p>
+  <p><strong>Department:</strong> {{ employee.department }}</p>
+  <p><strong>Valid for date:</strong> {{ today }}</p>
+  <div id="qrcode"></div>
+  <p class="muted">This QR rotates daily. Print or show it to the scanner page.</p>
+</div>
+<script>
+  new QRCode(document.getElementById('qrcode'), {
+    text: '{{ token }}',
+    width: 260,
+    height: 260
+  });
+</script>
+{% endblock %}

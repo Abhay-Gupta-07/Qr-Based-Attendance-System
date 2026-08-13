@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="grid cols-1">
+  <div class="card">
+    <h2>Office Location Settings</h2>
+    <p class="muted">
+      Configure the office location for GPS-based attendance verification. 
+      You can manually enter coordinates or use your current GPS location.
+    </p>
+
+    <form method="post" id="location-form">
+      <div class="grid cols-2">
+        <div>
+          <label>Current Office Latitude</label>
+          <input type="text" name="lat" id="lat-input" value="{{ current_lat }}" step="any" required>
+        </div>
+        <div>
+          <label>Current Office Longitude</label>
+          <input type="text" name="lng" id="lng-input" value="{{ current_lng }}" step="any" required>
+        </div>
+      </div>
+      
+      <label>Attendance Radius (meters)</label>
+      <input type="number" name="radius" id="radius-input" value="{{ current_radius }}" min="50" max="1000" required>
+      
+      <div style="margin-top:20px;">
+        <button type="button" class="btn btn-secondary" onclick="getCurrentLocation()">
+          Use My Current Location
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Save Location
+        </button>
+      </div>
+    </form>
+
+    <div id="location-status" class="mt" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Location Information</h2>
+    <div id="current-location-info">
+      <p><strong>Current Office Location:</strong></p>
+      <ul>
+        <li>Latitude: <span id="current-lat">{{ current_lat }}</span></li>
+        <li>Longitude: <span id="current-lng">{{ current_lng }}</span></li>
+        <li>Radius: <span id="current-radius">{{ current_radius }}</span> meters</li>
+      </ul>
+    </div>
+    
+    <div id="gps-status" class="mt flash" style="display:none;">
+      <strong>GPS Status:</strong>
+      <div id="gps-message"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCurrentLocation() {
+  const statusDiv = document.getElementById('location-status');
+  const gpsStatusDiv = document.getElementById('gps-status');
+  const gpsMessage = document.getElementById('gps-message');
+  
+  if (!navigator.geolocation) {
+    showStatus('Geolocation is not supported in this browser', 'danger');
+    return;
+  }
+
+  showStatus('Getting your current location...', 'warning');
+  gpsStatusDiv.style.display = 'block';
+  gpsMessage.innerText = 'Requesting GPS access...';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude.toFixed(6);
+      const lng = position.coords.longitude.toFixed(6);
+      const accuracy = Math.round(position.coords.accuracy);
+      
+      // Update form fields
+      document.getElementById('lat-input').value = lat;
+      document.getElementById('lng-input').value = lng;
+      
+      // Update display
+      document.getElementById('current-lat').innerText = lat;
+      document.getElementById('current-lng').innerText = lng;
+      
+      gpsMessage.innerHTML = 'Location captured successfully!<br>Coordinates: ' + lat + ', ' + lng + '<br>Accuracy: ' + accuracy + ' meters';
+      
+      showStatus(`Location updated: ${lat}, ${lng} (accuracy: ${accuracy}m)`, 'success');
+    },
+    (error) => {
+      let errorMsg = 'Unable to get location';
+      
+      if (error.code === 1) {
+        errorMsg = 'Location permission denied. Please allow location access.';
+      } else if (error.code === 2) {
+        errorMsg = 'Location unavailable. Please check your GPS settings.';
+      } else if (error.code === 3) {
+        errorMsg = 'Location request timed out. Please try again.';
+      }
+      
+      gpsMessage.innerHTML = `${errorMsg}`;
+      showStatus(errorMsg, 'danger');
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+  );
+}
+
+function showStatus(message, type = '') {
+  const statusDiv = document.getElementById('gps-status');
+  if (statusDiv) {
+    statusDiv.className = 'mt flash ' + type;
+    statusDiv.innerText = message;
+  }
+}
+
+function showStatus(message, type) {
+  const statusDiv = document.getElementById('location-status');
+  statusDiv.className = 'mt ' + type;
+  statusDiv.innerText = message;
+  statusDiv.style.display = 'block';
+  
+  // Auto-hide success messages after 5 seconds
+  if (type === 'success') {
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 5000);
+  }
+}
+
+// Update display when form fields change
+document.getElementById('lat-input').addEventListener('input', function() {
+  document.getElementById('current-lat').innerText = this.value;
+});
+
+document.getElementById('lng-input').addEventListener('input', function() {
+  document.getElementById('current-lng').innerText = this.value;
+});
+
+document.getElementById('radius-input').addEventListener('input', function() {
+  document.getElementById('current-radius').innerText = this.value;
+});
+</script>
+{% endblock %}

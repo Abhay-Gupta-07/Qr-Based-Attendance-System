@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or 'QR Attendance System' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="text-logo">Welcome</div>
+    </div>
+    <div class="topbar-actions">
+      {% if not session.get('admin_id') and not session.get('employee_id') %}
+      <a href="{{ url_for('login') }}" class="btn btn-secondary topbar-btn">Admin Login</a>
+      {% endif %}
+      {% if session.get('admin_id') %}
+      <span>Logged in as {{ session.get('admin_name') }}</span>
+      <a href="{{ url_for('settings') }}" class="btn btn-secondary topbar-btn">Settings</a>
+      {% elif session.get('employee_id') %}
+      <span>Logged in as {{ session.get('employee_name') }}</span>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if session.get('admin_id') %}
+  <nav class="nav">
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('scanner_page') }}">Scanner</a>
+    <a href="{{ url_for('today_list') }}">Today List</a>
+    <a href="{{ url_for('attendance_calculator') }}">Calculator</a>
+    <a href="{{ url_for('reports') }}">Reports</a>
+    <a href="{{ url_for('leave_management') }}">Leave</a>
+    <a href="{{ url_for('holiday_management') }}">Holidays</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </nav>
+  {% elif session.get('employee_id') %}
+  <nav class="nav">
+    <a href="{{ url_for('employee_dashboard') }}">My Attendance</a>
+    <a href="{{ url_for('employee_logout') }}">Logout</a>
+  </nav>
+  {% endif %}
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
