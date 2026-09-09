@@ -23,12 +23,61 @@
       <label>Attendance Radius (meters)</label>
       <input type="number" name="radius" id="radius-input" value="{{ current_radius }}" min="50" max="1000" required>
       
-      <div style="margin-top:20px;">
+      <div style="margin-top:20px; margin-bottom: 24px;">
         <button type="button" class="btn btn-secondary" onclick="getCurrentLocation()">
           Use My Current Location
         </button>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+
+      <h3 style="margin-bottom: 8px;">Server / Application URL</h3>
+      <p class="muted" style="margin-bottom: 12px;">
+        Base URL used when sending live QR code links in emails to employee mobile phones.
+      </p>
+      <label>Public / Network Base URL</label>
+      <input type="text" name="app_base_url" value="{{ app_base_url or '' }}" placeholder="http://192.168.0.2:5000 or https://yourdomain.com">
+      <small class="muted" style="display: block; margin-top: 4px; margin-bottom: 20px;">
+        Use <code>http://192.168.0.2:5000</code> for Wi-Fi devices, or your Ngrok/PythonAnywhere/custom URL for public access over the internet.
+      </small>
+
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+
+      <h3 style="margin-bottom: 8px;">Gmail SMTP Email Configuration (Recommended)</h3>
+      <p class="muted" style="margin-bottom: 16px;">
+        Use standard Gmail SMTP to send unlimited attendance emails directly from your Gmail account without SendGrid credit limits.
+      </p>
+
+      <div class="grid cols-2">
+        <div>
+          <label>Gmail Address</label>
+          <input type="email" name="smtp_username" value="{{ smtp_username or 'abbaabhayyy@gmail.com' }}" placeholder="you@gmail.com">
+        </div>
+        <div>
+          <label>Gmail App Password (16-char)</label>
+          <input type="password" name="smtp_password" value="{{ smtp_password or '' }}" placeholder="xxxx xxxx xxxx xxxx" autocomplete="off">
+        </div>
+      </div>
+      <small class="muted" style="display: block; margin-top: 6px; margin-bottom: 20px;">
+        Get your 16-character App Password from <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: #4f46e5;">Google Account App Passwords</a>.
+      </small>
+
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+
+      <h3 style="margin-bottom: 8px;">SendGrid API Fallback</h3>
+      <p class="muted" style="margin-bottom: 16px;">
+        Alternative SendGrid API integration.
+      </p>
+
+      <label>SendGrid API Key</label>
+      <input type="password" name="sendgrid_api_key" value="{{ sendgrid_api_key or '' }}" placeholder="SG.xxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+
+      <label style="margin-top: 14px;">SendGrid Verified Sender Email</label>
+      <input type="email" name="sendgrid_from_email" value="{{ sendgrid_from_email or 'abbaabhayyy@gmail.com' }}" placeholder="you@example.com">
+
+      <div style="margin-top:24px;">
         <button type="submit" class="btn btn-primary">
-          Save Location
+          Save Settings
         </button>
       </div>
     </form>

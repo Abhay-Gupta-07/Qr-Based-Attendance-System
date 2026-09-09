@@ -2,68 +2,133 @@
 {% block content %}
 <section class="index-hero">
   <div class="index-overlay"></div>
-  <div class="index-hero-content card">
-    <div class="hero-logo-container">
-      <img src="{{ url_for('static', filename='employee_login.png') }}" alt="Employee Login" class="hero-logo">
-    </div>
+  <div class="index-hero-content">
+    <div class="hero-badge">⚡ Intelligent QR System</div>
     <h1>QR Attendance Management System</h1>
+    <p>Secure, real-time, GPS-verified attendance logging with instant QR generation, employee portals, and automated reporting.</p>
     <div class="index-buttons">
-      <a href="{{ url_for('employee_login') }}" class="btn btn-secondary">Employee Login</a>
-      <a href="{{ url_for('scanner_page') }}" class="btn btn-primary">Scanner</a>
+      <a href="{{ url_for('employee_login') }}" class="btn btn-secondary hero-btn">Employee Login</a>
+      <a href="{{ url_for('scanner_page') }}" class="btn btn-primary hero-btn">Open Scanner</a>
     </div>
   </div>
 </section>
 
-<section class="index-features card mt">
-  <h3>Core Features</h3>
-  <div class="grid cols-3">
+<section class="index-features card">
+  <div class="section-title">
+    <h2>Core Features</h2>
+    <p>Everything you need for seamless workforce tracking and attendance management.</p>
+  </div>
+  <div class="grid cols-3 mt">
     <article class="feature-card">
-      <h4>🔑 QR-based Check-in</h4>
+      <div class="feature-icon">🔑</div>
+      <h4>QR-based Check-in</h4>
       <p>Generate unique employee QR tokens per day and log check-in/check-out securely with real-time validation.</p>
     </article>
     <article class="feature-card">
-      <h4>🌍 Geo-fenced Attendance</h4>
-      <p>In-built geolocation verification to accept entries only in permitted office radius with GPS tracking.</p>
+      <div class="feature-icon">🌍</div>
+      <h4>Geo-fenced Attendance</h4>
+      <p>In-built geolocation verification to accept entries only within permitted office radius with GPS tracking.</p>
     </article>
     <article class="feature-card">
-      <h4>📊 Live Reporting</h4>
+      <div class="feature-icon">📊</div>
+      <h4>Live Reporting</h4>
       <p>Daily attendance, leave, holiday, and analytics reports with XLSX export and visual dashboards.</p>
     </article>
     <article class="feature-card">
-      <h4>👤 Employee Management</h4>
-      <p>Add, edit, and remove employees, with department and designation tracking and bulk import.</p>
+      <div class="feature-icon">👤</div>
+      <h4>Employee Management</h4>
+      <p>Add, edit, and remove employees, with department and designation tracking and bulk export.</p>
     </article>
     <article class="feature-card">
-      <h4>📅 Leave & Holidays</h4>
+      <div class="feature-icon">📅</div>
+      <h4>Leave & Holidays</h4>
       <p>Approve leaves and schedule holidays; ensures accurate working day calculation with calendar integration.</p>
     </article>
     <article class="feature-card">
-      <h4>🔍 Audit Logs</h4>
+      <div class="feature-icon">🔍</div>
+      <h4>Audit Logs</h4>
       <p>Admin action traceable through audit logs for security and compliance purposes with detailed tracking.</p>
     </article>
   </div>
 </section>
 
-<section class="index-process card mt">
-  <h3>How It Works</h3>
-  <ol>
-    <li><strong>Admin Setup:</strong> Admin logs in and registers employees with their details and departments.</li>
-    <li><strong>QR Generation:</strong> Admin generates unique daily QR codes for each employee automatically.</li>
-    <li><strong>Employee Check-in:</strong> Employees scan QR codes at the gate using their mobile devices.</li>
-    <li><strong>Real-time Validation:</strong> System verifies QR codes, location, holidays and leave status instantly.</li>
-    <li><strong>Automatic Reporting:</strong> Attendance marked in real-time and reports auto-updated with analytics.</li>
-  </ol>
+<section class="index-process card">
+  <div class="section-title">
+    <h2>How It Works</h2>
+    <p>Simple step-by-step workflow for automated attendance management.</p>
+  </div>
+  <div class="process-steps">
+    <div class="process-step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h4>Admin Setup</h4>
+        <p>Admin logs in and registers employees with their details, designations, and departments.</p>
+      </div>
+    </div>
+    <div class="process-step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h4>QR Generation</h4>
+        <p>Admin generates unique daily QR tokens for each registered employee automatically.</p>
+      </div>
+    </div>
+    <div class="process-step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h4>Employee Scan</h4>
+        <p>Employees present or scan their secure QR codes at the attendance terminal or camera scanner.</p>
+      </div>
+    </div>
+    <div class="process-step">
+      <div class="step-number">4</div>
+      <div class="step-content">
+        <h4>Real-time Validation</h4>
+        <p>System verifies QR token integrity, GPS location radius, and leave/holiday status instantly.</p>
+      </div>
+    </div>
+    <div class="process-step">
+      <div class="step-number">5</div>
+      <div class="step-content">
+        <h4>Automatic Reports</h4>
+        <p>Attendance is recorded in real-time and reports/excel sheets update automatically.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section class="index-outcomes card mt">
-  <h3>Key Benefits</h3>
-  <ul>
-    <li><strong>Eliminate Manual Errors:</strong> Reduce manual attendance errors by 95% with automated QR tracking.</li>
-    <li><strong>Modern Security:</strong> Biometric-like attendance with complete privacy and GDPR compliance.</li>
-    <li><strong>Cost Effective:</strong> Reduce administrative overhead and save 40+ hours monthly on attendance management.</li>
-    <li><strong>Real-time Analytics:</strong> Get instant insights into attendance patterns, productivity, and workforce management.</li>
-    <li><strong>Mobile First:</strong> Works seamlessly on any mobile device with responsive design and offline support.</li>
-    <li><strong>Scalable Solution:</strong> Perfect for small teams to large enterprises with unlimited user support.</li>
-  </ul>
+<section class="index-outcomes card">
+  <div class="section-title">
+    <h2>Key Benefits</h2>
+  </div>
+  <div class="grid cols-2 mt">
+    <div class="benefit-item">
+      <span class="benefit-check">✓</span>
+      <div>
+        <strong>Eliminate Manual Errors</strong>
+        <p>Reduce manual attendance errors by 95% with automated QR tracking.</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <span class="benefit-check">✓</span>
+      <div>
+        <strong>Modern & Secure</strong>
+        <p>Biometric-like attendance with complete privacy and instant validation.</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <span class="benefit-check">✓</span>
+      <div>
+        <strong>Cost & Time Effective</strong>
+        <p>Reduce administrative overhead and save 40+ hours monthly on attendance management.</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <span class="benefit-check">✓</span>
+      <div>
+        <strong>Real-time Analytics</strong>
+        <p>Get instant insights into attendance patterns, productivity, and workforce statistics.</p>
+      </div>
+    </div>
+  </div>
 </section>
 {% endblock %}

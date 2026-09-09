@@ -1,25 +1,345 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Your QR Code</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic QR Code - {{ employee.full_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        @media print {
+
+            html,
+            body {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 36px 28px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        p.muted {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .qr-wrapper {
+            position: relative;
+            margin: 20px auto;
+            width: 232px;
+            height: 232px;
+        }
+
+        #qrcode {
+            padding: 16px;
+            background: #ffffff;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            width: 232px;
+            height: 232px;
+            transition: filter 0.2s ease, opacity 0.2s ease;
+        }
+
+        #qrcode canvas,
+        #qrcode img {
+            pointer-events: none !important;
+        }
+
+        .screen-protection-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.96);
+            color: #ffffff;
+            border-radius: 20px;
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
+
+        .screen-protection-overlay.active {
+            display: flex;
+        }
+
+        .security-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .security-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #f87171;
+            margin-bottom: 6px;
+        }
+
+        .security-desc {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .timer-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 20px;
+        }
+
+        .timer-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .progress-bar-bg {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #4f46e5;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .emp-info {
+            margin-top: 16px;
+            text-align: left;
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .emp-info div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .emp-info div:last-child {
+            margin-bottom: 0;
+        }
+
+        .emp-info span {
+            color: #64748b;
+        }
+
+        .emp-info strong {
+            color: #0f172a;
+        }
+    </style>
 </head>
-<body style="text-align:center; font-family:Arial;">
 
-    <h2>QR Code for Attendance</h2>
+<body>
 
-    <p><b>Name:</b> {{ employee.full_name }}</p>
-    <p><b>Employee Code:</b> {{ employee.employee_code }}</p>
+    <div class="card">
+        <div class="screen-protection-overlay" id="security-overlay">
+            <div class="security-icon">🔒</div>
+            <div class="security-title">Screen Shield Active</div>
+            <div class="security-desc">Screenshots & Snipping tools are disabled for security reasons.<br>Return focus
+                to view dynamic QR code.</div>
+        </div>
 
-    <div id="qrcode" style="margin-top:20px;"></div>
+        <span class="badge">⏱️ Dynamic 30s QR Code</span>
+        <h2>Attendance QR Token</h2>
+        <p class="muted">Scan at terminal camera to mark attendance</p>
+
+        <div class="qr-wrapper">
+            <div id="qrcode"></div>
+        </div>
+
+        <div class="timer-box">
+            <div class="timer-text" id="timer-label">Expires in 30 seconds</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="emp-info">
+            <div><span>Employee:</span> <strong>{{ employee.full_name }}</strong></div>
+            <div><span>Code:</span> <strong>{{ employee.employee_code }}</strong></div>
+            <div><span>Department:</span> <strong>{{ employee.department }}</strong></div>
+        </div>
+    </div>
 
     <script>
-        new QRCode(document.getElementById("qrcode"), {
-            text: "{{ token }}",
-            width: 200,
-            height: 200
+        let qrcodeObj = null;
+        let employeeId = {{ employee.id }};
+        let secondsLeft = 30;
+
+        function renderQR(tokenText) {
+            const qrContainer = document.getElementById("qrcode");
+            qrContainer.innerHTML = "";
+            qrcodeObj = new QRCode(qrContainer, {
+                text: tokenText,
+                width: 200,
+                height: 200,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        async function fetchFreshToken() {
+            try {
+                const res = await fetch(`/api/get_dynamic_qr/${employeeId}`);
+                const data = await res.json();
+                if (data.ok) {
+                    renderQR(data.token);
+                    secondsLeft = data.expires_in || 30;
+                    updateTimerDisplay();
+                }
+            } catch (e) {
+                console.error('Failed to update QR token:', e);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timerLabel = document.getElementById("timer-label");
+            const progressFill = document.getElementById("progress-fill");
+
+            timerLabel.innerText = `Token expires in ${secondsLeft}s`;
+            const percentage = Math.max(0, Math.min(100, (secondsLeft / 30) * 100));
+            progressFill.style.width = percentage + "%";
+
+            if (secondsLeft <= 5) {
+                progressFill.style.background = "#dc2626";
+                timerLabel.style.color = "#dc2626";
+            } else {
+                progressFill.style.background = "#4f46e5";
+                timerLabel.style.color = "#4f46e5";
+            }
+        }
+
+        // Anti-Screenshot Security Protections
+        const securityOverlay = document.getElementById('security-overlay');
+        const qrcodeElement = document.getElementById('qrcode');
+
+        function triggerSecurityShield() {
+            securityOverlay.classList.add('active');
+            qrcodeElement.style.filter = 'blur(40px) opacity(0)';
+        }
+
+        function removeSecurityShield() {
+            securityOverlay.classList.remove('active');
+            qrcodeElement.style.filter = 'none';
+        }
+
+        // 1. Disable Right Click Context Menu
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // 2. Disable Dragging QR Code
+        document.addEventListener('dragstart', (e) => e.preventDefault());
+
+        // 3. Detect PrintScreen / Shortcut key combinations
+        document.addEventListener('keydown', (e) => {
+            if (
+                e.key === 'PrintScreen' ||
+                (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'P' || e.key === 'S')) ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'S' || e.key === 's' || e.key === 'C' || e.key === 'c')) ||
+                e.key === 'F12'
+            ) {
+                e.preventDefault();
+                triggerSecurityShield();
+                setTimeout(removeSecurityShield, 3000);
+            }
         });
+
+        // 4. Hide / Blur QR Code when window loses focus or Snipping Tool / Screen Capture is activated
+        window.addEventListener('blur', triggerSecurityShield);
+        window.addEventListener('focus', removeSecurityShield);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                triggerSecurityShield();
+            } else {
+                removeSecurityShield();
+            }
+        });
+
+        // Initialize with template token
+        renderQR("{{ token }}");
+
+        // Countdown interval every 1 second
+        setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+                fetchFreshToken();
+            } else {
+                updateTimerDisplay();
+            }
+        }, 1000);
     </script>
 
 </body>
+
 </html>
